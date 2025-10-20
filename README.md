@@ -77,47 +77,26 @@ El repo incluye un `docker-compose.yml` listo para conectarlo a una red `proxy` 
 
 ```yaml
 services:
-  app:
-    container_name: vuzon
-    build: ./app
-    env_file: .env
-    restart: unless-stopped
-    expose:
-      - "3000"
-    networks:
-      - proxy
-
-networks:
-  proxy:
-    external: true
-```
-
-> Crea la red si no existe:
->
-> ```bash
-> docker network create proxy
-> ```
->
-> Publica el servicio por tu *reverse proxy* (host rule, TLS, auth, etc.).
-
-### Opción B: local sencillo (puerto 3000)
-
-Si prefieres exponer directamente el puerto:
-
-```yaml
-services:
   vuzon:
-    build: .
-    env_file: .env
-    ports:
-      - "3000:3000"
+    image: ghcr.io/svnz0x/vuzon-docker:${VUZON_TAG:-latest}
+    env_file:
+      - .env
     restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health || curl -fsS http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 ```
+
 
 **Levantar:**
 
 ```bash
-docker compose up -d --build
+docker compose up -d
 # Abre http://localhost:3000
 ```
 

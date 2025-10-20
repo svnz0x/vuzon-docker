@@ -71,9 +71,6 @@ DOMAIN=example.com
 
 ## Despliegue con Docker Compose
 
-### Opción A: con *reverse proxy* (compose incluido)
-
-El repo incluye un `docker-compose.yml` listo para conectarlo a una red `proxy` (Traefik/Caddy/Nginx):
 
 ```yaml
 services:

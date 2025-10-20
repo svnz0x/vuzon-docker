@@ -1,10 +1,10 @@
 # vuzon — UI para Cloudflare Email Routing
 
-<img width="300" height="222" alt="1-clean" src="https://github.com/user-attachments/assets/16fff53a-075e-4316-85ae-6ef7cf0fc0f3" />
+<img width="205" height="152" alt="1-clean" src="https://github.com/user-attachments/assets/16fff53a-075e-4316-85ae-6ef7cf0fc0f3" />
 
-<img width="300" height="222" alt="2-clean" src="https://github.com/user-attachments/assets/3ce48068-8db5-47a2-87cb-83791ca2d5bc" />
+<img width="205" height="152" alt="2-clean" src="https://github.com/user-attachments/assets/3ce48068-8db5-47a2-87cb-83791ca2d5bc" />
 
-<img width="300" height="222" alt="3-clean" src="https://github.com/user-attachments/assets/2576cc6e-f137-4436-9a4a-0857329d9ee7" />
+<img width="205" height="152" alt="3-clean" src="https://github.com/user-attachments/assets/2576cc6e-f137-4436-9a4a-0857329d9ee7" />
 
 
 **vuzon** es una UI ligera que usa la **API de Cloudflare Email Routing** para crear y gestionar **alias** y **destinatarios** de forma sencilla.

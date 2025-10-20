@@ -50,5 +50,5 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}     # ← usa SIEMPRE esto
-          labels: ${{ steps.meta.outputs.labels }} # ← y esto
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

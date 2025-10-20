@@ -1,4 +1,4 @@
-# vuzon — UI para Cloudflare Email Routing
+# <img width="22" height="22" alt="maskable-192" src="https://github.com/user-attachments/assets/5a806de1-f7a2-4f56-863c-91a5b6e1b89a" /> vuzon
 
 <img width="205" height="152" alt="1-clean" src="https://github.com/user-attachments/assets/16fff53a-075e-4316-85ae-6ef7cf0fc0f3" />
 

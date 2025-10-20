@@ -22,8 +22,6 @@
 - [Requisitos](#requisitos)
 - [Variables de entorno](#variables-de-entorno)
 - [Despliegue con Docker Compose](#despliegue-con-docker-compose)
-  - [Opción A: con *reverse proxy* (compose incluido)](#opción-a-con-reverse-proxy-compose-incluido)
-  - [Opción B: local sencillo (puerto-3000)](#opción-b-local-sencillo-puerto-3000)
 - [Ejecución local sin Docker](#ejecución-local-sin-docker)
 - [Rutas del backend](#rutas-del-backend)
 - [Uso básico](#uso-básico)

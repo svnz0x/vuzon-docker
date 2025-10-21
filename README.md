@@ -141,7 +141,6 @@ El backend expone un proxy REST hacia Cloudflare:
 
 - Usa **API Tokens** con **privilegios mínimos** en lugar de la Global API Key.
 - Ubica la app tras un *reverse proxy* con **TLS** y, si procede, añade **autenticación**.
-- No subas el archivo `.env` al repositorio.
 
 **Scopes mínimos sugeridos para el token:**
 - **Account → Email Routing Addresses: Read & Edit**

@@ -73,7 +73,7 @@ DOMAIN=example.com
 ```yaml
 services:
   vuzon:
-    image: ghcr.io/svnz0x/vuzon-docker:${VUZON_TAG:-latest}
+    image: ghcr.io/svnz0x/vuzon-docker
     env_file:
       - .env
     restart: unless-stopped

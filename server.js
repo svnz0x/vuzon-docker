@@ -21,6 +21,9 @@ const cf = axios.create({
   headers: { Authorization: `Bearer ${CF_API_TOKEN}`, 'Content-Type': 'application/json' }
 });
 
+const LOCAL_PART_REGEX = /^[A-Za-z0-9.-]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 async function fetchAllPages(path, { client = cf, perPage = 100, params = {} } = {}) {
   const items = [];
   let page = 1;
@@ -229,18 +232,31 @@ app.get('/api/rules', async (_req, res) => {
 
 app.post('/api/rules', async (req, res) => {
   try {
-    const { localPart, destEmail, name } = req.body;
-    if (!localPart || !destEmail) {
+    const { localPart, destEmail, name } = req.body || {};
+    const normalizedLocalPart = typeof localPart === 'string' ? localPart.trim() : '';
+    const normalizedDestEmail = typeof destEmail === 'string' ? destEmail.trim() : '';
+    const normalizedName = typeof name === 'string' ? name.trim() : name;
+
+    if (!normalizedLocalPart || !normalizedDestEmail) {
       return res.status(400).json({ error: 'localPart y destEmail requeridos' });
     }
-    const alias = `${localPart}@${DOMAIN}`;
+    if (!LOCAL_PART_REGEX.test(normalizedLocalPart)) {
+      return res.status(400).json({ error: 'El alias solo puede contener letras, números, puntos y guiones' });
+    }
+
+    if (!EMAIL_REGEX.test(normalizedDestEmail)) {
+      return res.status(400).json({ error: 'destEmail debe ser un correo válido' });
+    }
+
+    const alias = `${normalizedLocalPart}@${DOMAIN}`;
     const body = {
       enabled: true,
-      name: name || `${alias} -> ${destEmail}`,
+      name: normalizedName || `${alias} -> ${normalizedDestEmail}`,
       matchers: [{ type: 'literal', field: 'to', value: alias }],
-      actions: [{ type: 'forward', value: [destEmail] }]
+      actions: [{ type: 'forward', value: [normalizedDestEmail] }]
     };
-    const r = await cf.post(`/zones/${CF_ZONE_ID}/email/routing/rules`, body);
+    const client = defaultClient;
+    const r = await client.post(`/zones/${CF_ZONE_ID}/email/routing/rules`, body);
     res.json(r.data);
   } catch (e) {
     const status = e.response?.status ?? 500;

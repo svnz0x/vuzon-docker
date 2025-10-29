@@ -120,7 +120,7 @@ El backend expone un proxy REST hacia Cloudflare:
 - `DELETE /api/addresses/:id` — Elimina destinatario.
 
 - `GET  /api/rules` — Lista reglas/alias.
-- `POST /api/rules` — Crea regla `{ localPart, destEmail }`.
+- `POST /api/rules` — Crea regla `{ localPart, destEmail }` (el `localPart` se recorta y solo admite letras, números, puntos y guiones; `destEmail` debe ser un correo válido).
 - `DELETE /api/rules/:id` — Elimina regla.
 - `POST /api/rules/:id/enable` — Habilita regla.
 - `POST /api/rules/:id/disable` — Deshabilita regla.

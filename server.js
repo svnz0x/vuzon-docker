@@ -120,7 +120,9 @@ app.get('/api/addresses', async (_req, res) => {
     const r = await cf.get(`/accounts/${CF_ACCOUNT_ID}/email/routing/addresses`);
     res.json(r.data);
   } catch (e) {
-    res.status(500).json({ error: e.response?.data || e.message });
+    const status = e.response?.status ?? 500;
+    const payload = e.response?.data ?? { error: e.message };
+    res.status(status).json(payload);
   }
 });
 
@@ -131,7 +133,9 @@ app.post('/api/addresses', async (req, res) => {
     const r = await cf.post(`/accounts/${CF_ACCOUNT_ID}/email/routing/addresses`, { email });
     res.json(r.data);
   } catch (e) {
-    res.status(500).json({ error: e.response?.data || e.message });
+    const status = e.response?.status ?? 500;
+    const payload = e.response?.data ?? { error: e.message };
+    res.status(status).json(payload);
   }
 });
 
@@ -140,7 +144,9 @@ app.delete('/api/addresses/:id', async (req, res) => {
     const r = await cf.delete(`/accounts/${CF_ACCOUNT_ID}/email/routing/addresses/${req.params.id}`);
     res.json(r.data);
   } catch (e) {
-    res.status(500).json({ error: e.response?.data || e.message });
+    const status = e.response?.status ?? 500;
+    const payload = e.response?.data ?? { error: e.message };
+    res.status(status).json(payload);
   }
 });
 
@@ -150,7 +156,9 @@ app.get('/api/rules', async (_req, res) => {
     const r = await cf.get(`/zones/${CF_ZONE_ID}/email/routing/rules`);
     res.json(r.data);
   } catch (e) {
-    res.status(500).json({ error: e.response?.data || e.message });
+    const status = e.response?.status ?? 500;
+    const payload = e.response?.data ?? { error: e.message };
+    res.status(status).json(payload);
   }
 });
 
@@ -170,7 +178,9 @@ app.post('/api/rules', async (req, res) => {
     const r = await cf.post(`/zones/${CF_ZONE_ID}/email/routing/rules`, body);
     res.json(r.data);
   } catch (e) {
-    res.status(500).json({ error: e.response?.data || e.message });
+    const status = e.response?.status ?? 500;
+    const payload = e.response?.data ?? { error: e.message };
+    res.status(status).json(payload);
   }
 });
 
@@ -179,7 +189,9 @@ app.delete('/api/rules/:id', async (req, res) => {
     const r = await cf.delete(`/zones/${CF_ZONE_ID}/email/routing/rules/${req.params.id}`);
     res.json(r.data);
   } catch (e) {
-    res.status(500).json({ error: e.response?.data || e.message });
+    const status = e.response?.status ?? 500;
+    const payload = e.response?.data ?? { error: e.message };
+    res.status(status).json(payload);
   }
 });
 
@@ -188,7 +200,9 @@ app.post('/api/rules/:id/disable', async (req, res) => {
     const r = await updateRuleEnabled(req.params.id, false);
     res.json(r.data);
   } catch (e) {
-    res.status(500).json({ error: e.response?.data || e.message });
+    const status = e.response?.status ?? 500;
+    const payload = e.response?.data ?? { error: e.message };
+    res.status(status).json(payload);
   }
 });
 
@@ -197,7 +211,9 @@ app.post('/api/rules/:id/enable', async (req, res) => {
     const r = await updateRuleEnabled(req.params.id, true);
     res.json(r.data);
   } catch (e) {
-    res.status(500).json({ error: e.response?.data || e.message });
+    const status = e.response?.status ?? 500;
+    const payload = e.response?.data ?? { error: e.message };
+    res.status(status).json(payload);
   }
 });
 
@@ -207,7 +223,9 @@ app.post('/api/enable-routing', async (_req, res) => {
     const r = await cf.post(`/zones/${CF_ZONE_ID}/email/routing/dns`);
     res.json(r.data);
   } catch (e) {
-    res.status(500).json({ error: e.response?.data || e.message });
+    const status = e.response?.status ?? 500;
+    const payload = e.response?.data ?? { error: e.message };
+    res.status(status).json(payload);
   }
 });
 

@@ -345,7 +345,61 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
     const destSel = $('#destSel');
     const status = $('#status');
 
-    const setStatus = (msg = '') => { status.textContent = msg; };
+    const statusManager = (() => {
+      const operations = new Map();
+      let looseMessage = '';
+
+      const getOpsArray = () => Array.from(operations.values());
+      const update = () => {
+        const ops = getOpsArray();
+        const error = [...ops].reverse().find(op => op.state === 'error');
+        if (error) {
+          status.textContent = error.message;
+          return;
+        }
+        const loading = [...ops].reverse().find(op => op.state === 'loading');
+        if (loading) {
+          status.textContent = loading.message;
+          return;
+        }
+        status.textContent = looseMessage;
+      };
+
+      return {
+        start(id, message) {
+          operations.set(id, { state: 'loading', message });
+          update();
+        },
+        succeed(id, message) {
+          operations.delete(id);
+          if (message !== undefined) {
+            looseMessage = message;
+          } else if (!operations.size) {
+            looseMessage = '';
+          }
+          update();
+        },
+        fail(id, message) {
+          operations.set(id, { state: 'error', message });
+          update();
+        },
+        info(message = '') {
+          looseMessage = message;
+          update();
+        },
+        clearInfoIfIdle() {
+          if (!operations.size) {
+            looseMessage = '';
+            update();
+          }
+        },
+        hasErrors() {
+          return getOpsArray().some(op => op.state === 'error');
+        }
+      };
+    })();
+
+    const setStatus = (msg = '') => statusManager.info(msg);
     const safeJoin = (val) => Array.isArray(val) ? val.join(', ') : (val ?? '');
 
     const on = (el, evt, sel, fn) => el.addEventListener(evt, e => {
@@ -384,7 +438,7 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
     }
 
     async function loadDests() {
-      setStatus('Cargando destinatarios…');
+      statusManager.start('loadDests', 'Cargando destinatarios…');
       destTbl.innerHTML = '';
       destSel.innerHTML = '';
       try {
@@ -422,15 +476,15 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
           opt.disabled = !a.verified;
           destSel.appendChild(opt);
         });
-        setStatus('');
+        statusManager.succeed('loadDests');
       } catch {
-        setStatus('No se pudieron cargar los destinatarios.');
+        statusManager.fail('loadDests', 'No se pudieron cargar los destinatarios.');
       }
     }
 
     async function loadRules() {
       if (!rulesList) return;
-      setStatus('Cargando alias…');
+      statusManager.start('loadRules', 'Cargando alias…');
       rulesList.innerHTML = '';
       try {
         const d = await api('/api/rules');
@@ -500,9 +554,9 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
           `.trim();
           rulesList.appendChild(card);
         });
-        setStatus('');
+        statusManager.succeed('loadRules');
       } catch {
-        setStatus('No se pudieron cargar las reglas.');
+        statusManager.fail('loadRules', 'No se pudieron cargar las reglas.');
       }
     }
 
@@ -608,9 +662,11 @@ if (toggleDestinatarios && destinatariosContent) {
       lbl.textContent = 'Actualizando…';
       spn.hidden = false;
 
-      setStatus('Actualizando…');
+      statusManager.info('Actualizando…');
       await Promise.allSettled([loadDests(), loadRules()]);
-      setStatus('');
+      if (!statusManager.hasErrors()) {
+        statusManager.clearInfoIfIdle();
+      }
 
       lbl.textContent = 'Actualizar';
       spn.hidden = true;

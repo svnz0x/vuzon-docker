@@ -69,6 +69,8 @@ DOMAIN=example.com
 
 ## Despliegue con Docker Compose
 
+> Consejo: el repositorio incluye un `.dockerignore` que excluye dependencias, logs y archivos de entorno, reduciendo el contexto de build y logrando imágenes más ligeras y compilaciones más rápidas.
+
 
 ```yaml
 services:

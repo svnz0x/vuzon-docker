@@ -1,21 +1,40 @@
+# Version control metadata
 .git
 .gitignore
 .gitattributes
+
+# Dependencies and package manager files
 node_modules
-npm-debug.log*
 yarn.lock
 pnpm-lock.yaml
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files and secrets
 .env
 .env.*
+*.env
 *.pem
 *.key
-docker-compose.yml
-docker-compose.*.yml
-.docker
+
+# Logs and temporary artifacts
+logs
 *.log
 .cache
 coverage
-.DS_Store
-Thumbs.db
+build
+dist
+tmp
+
+# Docker/compose artifacts
+.docker
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile.dev
+
+# Editor/OS files
 .idea
 .vscode
+.DS_Store
+Thumbs.db

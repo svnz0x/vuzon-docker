@@ -526,8 +526,14 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
         const id = btn.getAttribute('data-id');
         if (!confirm('¿Borrar alias?')) return;
         btn.disabled = true;
-        try { await api('/api/rules/' + encodeURIComponent(id), { method: 'DELETE' }); await loadRules(); }
-        catch { alert('Error al borrar alias'); }
+        try {
+          await api('/api/rules/' + encodeURIComponent(id), { method: 'DELETE' });
+          await loadRules();
+        } catch {
+          alert('Error al borrar alias');
+        } finally {
+          btn.disabled = false;
+        }
       });
 
       on(rulesList, 'click', '.disable-r', async (_e, btn) => {
@@ -631,8 +637,14 @@ if (toggleDestinatarios && destinatariosContent) {
       const id = btn.getAttribute('data-id');
       if (!confirm('¿Borrar destinatario?')) return;
       btn.disabled = true;
-      try { await api('/api/addresses/' + encodeURIComponent(id), { method: 'DELETE' }); await loadDests(); }
-      catch { alert('Error al borrar destinatario'); }
+      try {
+        await api('/api/addresses/' + encodeURIComponent(id), { method: 'DELETE' });
+        await loadDests();
+      } catch {
+        alert('Error al borrar destinatario');
+      } finally {
+        btn.disabled = false;
+      }
     });
 
     // Carga inicial

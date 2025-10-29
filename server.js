@@ -75,13 +75,21 @@ async function getRuleForUpdate(ruleIdentifier, id, client) {
 
 async function updateRuleEnabled(ruleIdentifier, enabled, client = cf) {
   const id = encodeURIComponent(ruleIdentifier);
+  const payload = await getRuleForUpdate(ruleIdentifier, id, client);
+
+  if (!payload?.matchers || !payload?.actions) {
+    const error = new Error('Regla incompleta: faltan matchers o actions');
+    throw error;
+  }
+
+  const pathId = encodeURIComponent(payload.id || ruleIdentifier);
+  const { id: _omit, ...body } = payload;
+
   try {
-    const pathId = encodeURIComponent(payload.id || ruleIdentifier);
-      const { id: _omit, ...body } = payload;
-      return await client.put(`/zones/${CF_ZONE_ID}/email/routing/rules/${pathId}`, {
-        ...body,
-        enabled
-      });
+    return await client.put(`/zones/${CF_ZONE_ID}/email/routing/rules/${pathId}`, {
+      ...body,
+      enabled
+    });
   } catch (err) {
     const status = err.response?.status;
     if (
@@ -91,21 +99,18 @@ async function updateRuleEnabled(ruleIdentifier, enabled, client = cf) {
       throw err;
     }
 
-    try {
-      const payload = await getRuleForUpdate(ruleIdentifier, id, client);
-      if (!payload?.matchers || !payload?.actions) {
-        const error = new Error('Regla incompleta: faltan matchers o actions');
-        error.cause = err;
-        throw error;
+    if (pathId !== id) {
+      try {
+        return await client.put(`/zones/${CF_ZONE_ID}/email/routing/rules/${id}`, {
+          ...body,
+          enabled
+        });
+      } catch (innerErr) {
+        throw innerErr.response?.data ? innerErr : err;
       }
-
-      return await client.put(`/zones/${CF_ZONE_ID}/email/routing/rules/${id}`, {
-        ...payload,
-        enabled
-      });
-    } catch (innerErr) {
-      throw innerErr.response?.data ? innerErr : err;
     }
+
+    throw err;
   }
 }
 

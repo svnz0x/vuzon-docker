@@ -76,12 +76,9 @@ async function getRuleForUpdate(ruleIdentifier, id, client) {
 async function updateRuleEnabled(ruleIdentifier, enabled, client = cf) {
   const id = encodeURIComponent(ruleIdentifier);
   try {
-    const pathId = encodeURIComponent(payload.id || ruleIdentifier);
-      const { id: _omit, ...body } = payload;
-      return await client.put(`/zones/${CF_ZONE_ID}/email/routing/rules/${pathId}`, {
-        ...body,
-        enabled
-      });
+    return await client.put(`/zones/${CF_ZONE_ID}/email/routing/rules/${id}`, {
+      enabled
+    });
   } catch (err) {
     const status = err.response?.status;
     if (
@@ -99,11 +96,17 @@ async function updateRuleEnabled(ruleIdentifier, enabled, client = cf) {
         throw error;
       }
 
-      return await client.put(`/zones/${CF_ZONE_ID}/email/routing/rules/${id}`, {
-        ...payload,
+      const pathId = encodeURIComponent(payload.id || ruleIdentifier);
+      const { id: _omit, ...body } = payload;
+
+      return await client.put(`/zones/${CF_ZONE_ID}/email/routing/rules/${pathId}`, {
+        ...body,
         enabled
       });
     } catch (innerErr) {
+      if (innerErr.cause === err) {
+        throw innerErr;
+      }
       throw innerErr.response?.data ? innerErr : err;
     }
   }

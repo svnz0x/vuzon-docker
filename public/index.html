@@ -367,8 +367,9 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
     };
 
     async function api(path, opts = {}) {
+      const { headers = {}, ...rest } = opts;
       try {
-        const res = await fetch(path, { headers: { 'Accept': 'application/json', ...(opts.headers||{}) }, ...opts });
+        const res = await fetch(path, { headers: { Accept: 'application/json', ...headers }, ...rest });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json().catch(() => ({}));
         return data;

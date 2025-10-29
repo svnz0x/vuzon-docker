@@ -21,6 +21,59 @@ const cf = axios.create({
   headers: { Authorization: `Bearer ${CF_API_TOKEN}`, 'Content-Type': 'application/json' }
 });
 
+async function fetchAllPages(path, { client = cf, perPage = 100, params = {} } = {}) {
+  const items = [];
+  let page = 1;
+  let totalPages = 1;
+  let baseInfo = null;
+
+  while (page <= totalPages) {
+    const query = { ...params, page };
+    if (perPage != null) {
+      query.per_page = perPage;
+    }
+
+    const response = await client.get(path, { params: query });
+    const data = response.data ?? {};
+    const pageItems = data.result?.result ?? data.result ?? [];
+
+    if (Array.isArray(pageItems)) {
+      items.push(...pageItems);
+    }
+
+    const info = data.result_info ?? data.result?.result_info;
+    if (!baseInfo && info) {
+      baseInfo = info;
+    }
+    if (info) {
+      const reportedTotal = Number(info.total_pages ?? info.totalPages);
+      if (Number.isFinite(reportedTotal) && reportedTotal > 0) {
+        totalPages = Math.max(totalPages, reportedTotal);
+      }
+    } else {
+      break;
+    }
+
+    if (page >= totalPages) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  const resultInfo = baseInfo
+    ? {
+        ...baseInfo,
+        page: 1,
+        count: items.length,
+        total_count: baseInfo.total_count ?? items.length,
+        total_pages: Math.max(totalPages, 1)
+      }
+    : undefined;
+
+  return { items, resultInfo };
+}
+
 function normalizeRulePayload(rule) {
   if (!rule) return null;
   const payload = {};
@@ -63,8 +116,7 @@ async function getRuleForUpdate(ruleIdentifier, id, client) {
   }
 
   const listPath = `/zones/${CF_ZONE_ID}/email/routing/rules`;
-  const listResp = await client.get(listPath);
-  const listData = listResp.data?.result?.result ?? listResp.data?.result ?? listResp.data ?? [];
+  const { items: listData } = await fetchAllPages(listPath, { client });
   const target = (listData || []).find(r => (r.id ?? r.tag) === ruleIdentifier);
   const normalized = normalizeRulePayload(target);
   if (normalized?.matchers && normalized?.actions) {
@@ -117,8 +169,9 @@ async function updateRuleEnabled(ruleIdentifier, enabled, client = cf) {
 /** ------- DESTINATARIOS (Accounts) ------- */
 app.get('/api/addresses', async (_req, res) => {
   try {
-    const r = await cf.get(`/accounts/${CF_ACCOUNT_ID}/email/routing/addresses`);
-    res.json(r.data);
+    const path = `/accounts/${CF_ACCOUNT_ID}/email/routing/addresses`;
+    const { items, resultInfo } = await fetchAllPages(path);
+    res.json({ success: true, result: items, ...(resultInfo ? { result_info: resultInfo } : {}) });
   } catch (e) {
     const status = e.response?.status ?? 500;
     const payload = e.response?.data ?? { error: e.message };
@@ -153,8 +206,9 @@ app.delete('/api/addresses/:id', async (req, res) => {
 /** ------- ALIAS / REGLAS (Zones) ------- */
 app.get('/api/rules', async (_req, res) => {
   try {
-    const r = await cf.get(`/zones/${CF_ZONE_ID}/email/routing/rules`);
-    res.json(r.data);
+    const path = `/zones/${CF_ZONE_ID}/email/routing/rules`;
+    const { items, resultInfo } = await fetchAllPages(path);
+    res.json({ success: true, result: items, ...(resultInfo ? { result_info: resultInfo } : {}) });
   } catch (e) {
     const status = e.response?.status ?? 500;
     const payload = e.response?.data ?? { error: e.message };

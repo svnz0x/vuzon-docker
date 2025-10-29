@@ -389,7 +389,8 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
       destSel.innerHTML = '';
       try {
         const d = await api('/api/addresses');
-        const list = d.result?.result ?? d.result ?? [];
+        const rawList = Array.isArray(d.result) ? d.result : d.result?.result ?? d.result ?? [];
+        const list = Array.isArray(rawList) ? rawList : [];
         (list || []).forEach(a => {
           const email = a.email || '';
           const tr = document.createElement('tr');
@@ -433,8 +434,8 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
       rulesList.innerHTML = '';
       try {
         const d = await api('/api/rules');
-        const list = d.result?.result ?? d.result ?? [];
-        const items = list || [];
+        const rawList = Array.isArray(d.result) ? d.result : d.result?.result ?? d.result ?? [];
+        const items = Array.isArray(rawList) ? rawList : [];
         if (!items.length) {
           rulesList.innerHTML = '<p class="rule-empty">No hay alias configurados.</p>';
         }

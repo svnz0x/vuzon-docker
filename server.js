@@ -125,9 +125,20 @@ async function getRuleForUpdate(ruleIdentifier, id, client) {
   return null;
 }
 
-async function updateRuleEnabled(ruleIdentifier, enabled, client = cf) {
+let defaultClient = cf;
+
+function setCfClientForTesting(client) {
+  defaultClient = client || cf;
+}
+
+async function updateRuleEnabled(ruleIdentifier, enabled, client = defaultClient) {
   const id = encodeURIComponent(ruleIdentifier);
   const payload = await getRuleForUpdate(ruleIdentifier, id, client);
+
+  if (!payload) {
+    const error = Object.assign(new Error('Regla no encontrada'), { statusCode: 404 });
+    throw error;
+  }
 
   if (!payload?.matchers || !payload?.actions) {
     const error = new Error('Regla incompleta: faltan matchers o actions');
@@ -254,7 +265,7 @@ app.post('/api/rules/:id/disable', async (req, res) => {
     const r = await updateRuleEnabled(req.params.id, false);
     res.json(r.data);
   } catch (e) {
-    const status = e.response?.status ?? 500;
+    const status = e.response?.status ?? e.statusCode ?? 500;
     const payload = e.response?.data ?? { error: e.message };
     res.status(status).json(payload);
   }
@@ -265,7 +276,7 @@ app.post('/api/rules/:id/enable', async (req, res) => {
     const r = await updateRuleEnabled(req.params.id, true);
     res.json(r.data);
   } catch (e) {
-    const status = e.response?.status ?? 500;
+    const status = e.response?.status ?? e.statusCode ?? 500;
     const payload = e.response?.data ?? { error: e.message };
     res.status(status).json(payload);
   }
@@ -291,4 +302,4 @@ if (require.main === module) {
   app.listen(PORT, () => console.log(`App lista en http://0.0.0.0:${PORT}`));
 }
 
-module.exports = { app, updateRuleEnabled };
+module.exports = { app, updateRuleEnabled, setCfClientForTesting };

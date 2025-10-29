@@ -1,0 +1,4 @@
+node_modules/*
+!node_modules/supertest/
+node_modules/supertest/*
+!node_modules/supertest/index.js

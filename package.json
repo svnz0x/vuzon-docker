@@ -18,5 +18,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2"
   },
+  "devDependencies": {
+    "supertest": "^6.3.4"
+  },
   "license": "PolyForm-Noncommercial-1.0.0"
 }

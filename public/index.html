@@ -424,13 +424,51 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
       const { headers = {}, ...rest } = opts;
       try {
         const res = await fetch(path, { headers: { Accept: 'application/json', ...headers }, ...rest });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        if (!res.ok) {
+          let message = `HTTP ${res.status}${res.statusText ? ' ' + res.statusText : ''}`.trim();
+          try {
+            const errJson = await res.clone().json();
+            if (errJson && typeof errJson === 'object') {
+              const errorList = Array.isArray(errJson.errors) ? errJson.errors : [];
+              const firstError = errorList.find(e => e && (e.message || e.code)) || null;
+              const altMessage = typeof errJson.message === 'string' ? errJson.message
+                : typeof errJson.error === 'string' ? errJson.error
+                : Array.isArray(errJson.messages) ? errJson.messages.filter(Boolean).join(', ') : '';
+              if (firstError) {
+                const parts = [];
+                if (firstError.message) parts.push(firstError.message);
+                if (firstError.code) parts.push(`(Código ${firstError.code})`);
+                if (parts.length) message = parts.join(' ');
+              } else if (altMessage) {
+                message = altMessage;
+              } else if (Object.keys(errJson).length) {
+                message = JSON.stringify(errJson);
+              }
+            }
+          } catch (_) {
+            try {
+              const text = await res.clone().text();
+              if (text) message = text;
+            } catch (_) {
+              /* ignore */
+            }
+          }
+          throw new Error(message || 'Se produjo un error al contactar con el servicio.');
+        }
         const data = await res.json().catch(() => ({}));
         return data;
       } catch (err) {
         console.error(err);
-        throw err;
+        const fallback = err instanceof Error ? err : new Error('No se pudo completar la solicitud.');
+        throw fallback;
       }
+    }
+
+    function getErrorMessage(err, fallback) {
+      if (!err) return fallback;
+      if (typeof err === 'string') return err;
+      if (typeof err.message === 'string' && err.message.trim()) return err.message;
+      return fallback;
     }
 
     function esc(str='') {
@@ -477,8 +515,8 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
           destSel.appendChild(opt);
         });
         statusManager.succeed('loadDests');
-      } catch {
-        statusManager.fail('loadDests', 'No se pudieron cargar los destinatarios.');
+      } catch (err) {
+        statusManager.fail('loadDests', getErrorMessage(err, 'No se pudieron cargar los destinatarios.'));
       }
     }
 
@@ -555,8 +593,8 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
           rulesList.appendChild(card);
         });
         statusManager.succeed('loadRules');
-      } catch {
-        statusManager.fail('loadRules', 'No se pudieron cargar las reglas.');
+      } catch (err) {
+        statusManager.fail('loadRules', getErrorMessage(err, 'No se pudieron cargar las reglas.'));
       }
     }
 
@@ -585,8 +623,8 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
         try {
           await api('/api/rules/' + encodeURIComponent(id), { method: 'DELETE' });
           await loadRules();
-        } catch {
-          alert('Error al borrar alias');
+        } catch (err) {
+          alert(getErrorMessage(err, 'Error al borrar alias'));
         } finally {
           btn.disabled = false;
         }
@@ -597,7 +635,7 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
         if (!confirm('¿Deshabilitar alias?')) return;
         btn.disabled = true;
         try { await api(`/api/rules/${encodeURIComponent(id)}/disable`, { method: 'POST' }); await loadRules(); }
-        catch { alert('Error al deshabilitar alias'); }
+        catch (err) { alert(getErrorMessage(err, 'Error al deshabilitar alias')); }
         finally { btn.disabled = false; }
       });
 
@@ -605,7 +643,7 @@ h1 .logo { width: 32px; height: 32px; border-radius: 8px; vertical-align: -6px; 
         const id = btn.getAttribute('data-id');
         btn.disabled = true;
         try { await api(`/api/rules/${encodeURIComponent(id)}/enable`, { method: 'POST' }); await loadRules(); }
-        catch { alert('Error al habilitar alias'); }
+        catch (err) { alert(getErrorMessage(err, 'Error al habilitar alias')); }
         finally { btn.disabled = false; }
       });
     }
@@ -646,7 +684,7 @@ if (toggleDestinatarios && destinatariosContent) {
         await api('/api/addresses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
         input.value = '';
         await loadDests();
-      } catch { alert('No se pudo añadir el destinatario'); }
+      } catch (err) { alert(getErrorMessage(err, 'No se pudo añadir el destinatario')); }
       finally { input.disabled = false; $('#addDest').disabled = false; }
     });
 
@@ -687,7 +725,7 @@ if (toggleDestinatarios && destinatariosContent) {
         await api('/api/rules', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ localPart: lp, destEmail: de }) });
         $('#localPart').value = '';
         await loadRules();
-      } catch { alert('No se pudo crear el alias'); }
+      } catch (err) { alert(getErrorMessage(err, 'No se pudo crear el alias')); }
       finally { btn.disabled = false; }
     });
 
@@ -698,8 +736,8 @@ if (toggleDestinatarios && destinatariosContent) {
       try {
         await api('/api/addresses/' + encodeURIComponent(id), { method: 'DELETE' });
         await loadDests();
-      } catch {
-        alert('Error al borrar destinatario');
+      } catch (err) {
+        alert(getErrorMessage(err, 'Error al borrar destinatario'));
       } finally {
         btn.disabled = false;
       }
